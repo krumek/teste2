@@ -1,3 +1,6 @@
+-- Optimized Chams, GUI, Binds, Aimbot, Triggerbot, HUD for Xeno v1.2.50U with Injection Notification
+-- LocalScript in StarterPlayerScripts
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
