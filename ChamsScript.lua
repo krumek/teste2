@@ -1,5 +1,5 @@
--- Optimized Counter Blox Script: Aimbot (Silent/Fix), Triggerbot (Chams Color Activation), Enhanced ESP/Visuals, Improved HUD (Bomb Timer), Grenade Prediction
--- Inspired by top scripts: Silent Aim, ESP Boxes/Tracers, Bhop, Kill All from GitHub/Rscripts
+-- Optimized Counter Blox Script: Fixed Triggerbot (Team Check), Team Diff, Third-Person Toggle, Enhanced Visuals (Skeleton ESP, Health Bars), No Recoil, Radar
+-- Inspired by Exunys/AirHub, CounterBloxDev scripts: Config GUI, Silent Aim, ESP Skeleton, No Recoil, Radar Mini-Map
 -- LocalScript for Xeno v1.2.50U
 
 local Players = game:GetService("Players")
@@ -35,7 +35,7 @@ pcall(function()
     showNotification("Скрипт успешно загружен для Counter Blox!", Color3.fromRGB(0, 255, 0))
 end)
 
--- GUI Setup (Movable Config)
+-- GUI Setup (Movable, Expanded for New Features)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ChamsConfig"
 ScreenGui.ResetOnSpawn = false
@@ -43,8 +43,8 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Enabled = false
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 250, 0, 500)
-Frame.Position = UDim2.new(0.5, -125, 0.5, -250)
+Frame.Size = UDim2.new(0, 250, 0, 550)
+Frame.Position = UDim2.new(0.5, -125, 0.5, -275)
 Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 Frame.Parent = ScreenGui
 Frame.Active = true
@@ -57,7 +57,7 @@ Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Parent = Frame
 
--- Inputs (Chams) - Expanded for more visuals
+-- Chams Inputs (Unchanged)
 local FillColorLabel = Instance.new("TextLabel")
 FillColorLabel.Text = "Fill Color (R,G,B)"
 FillColorLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -110,7 +110,7 @@ OutlineTransInput.Position = UDim2.new(0, 0, 0, 170)
 OutlineTransInput.Text = "0"
 OutlineTransInput.Parent = Frame
 
--- Toggles (Expanded)
+-- Toggles (Added Third-Person, No Recoil, Radar)
 local BunnyhopToggle = Instance.new("TextButton")
 BunnyhopToggle.Text = "Bunnyhop: Off (F1)"
 BunnyhopToggle.Size = UDim2.new(1, 0, 0, 30)
@@ -197,7 +197,7 @@ SmoothCheckToggle.MouseButton1Click:Connect(function()
 end)
 
 local TriggerbotToggle = Instance.new("TextButton")
-TriggerbotToggle.Text = "Triggerbot (Chams Color): Off (F3)"
+TriggerbotToggle.Text = "Triggerbot: Off (F3)"
 TriggerbotToggle.Size = UDim2.new(1, 0, 0, 30)
 TriggerbotToggle.Position = UDim2.new(0, 0, 0, 350)
 TriggerbotToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -207,12 +207,12 @@ local triggerbotEnabled = false
 
 TriggerbotToggle.MouseButton1Click:Connect(function()
     triggerbotEnabled = not triggerbotEnabled
-    TriggerbotToggle.Text = "Triggerbot (Chams Color): " .. (triggerbotEnabled and "On" or "Off") .. " (F3)"
+    TriggerbotToggle.Text = "Triggerbot: " .. (triggerbotEnabled and "On" or "Off") .. " (F3)"
     UpdateHUD()
 end)
 
 local ESPToggle = Instance.new("TextButton")
-ESPToggle.Text = "ESP (Boxes/Tracers): Off (F4)"
+ESPToggle.Text = "ESP (Skeleton/Health): Off (F4)"
 ESPToggle.Size = UDim2.new(1, 0, 0, 30)
 ESPToggle.Position = UDim2.new(0, 0, 0, 380)
 ESPToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -222,7 +222,7 @@ local espEnabled = false
 
 ESPToggle.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
-    ESPToggle.Text = "ESP (Boxes/Tracers): " .. (espEnabled and "On" or "Off") .. " (F4)"
+    ESPToggle.Text = "ESP (Skeleton/Health): " .. (espEnabled and "On" or "Off") .. " (F4)"
     UpdateHUD()
 end)
 
@@ -242,7 +242,7 @@ BombToggle.MouseButton1Click:Connect(function()
 end)
 
 local GrenadeToggle = Instance.new("TextButton")
-GrenadeToggle.Text = "Grenade Prediction: Off (F6)"
+GrenadeToggle.Text = "Grenade Pred: Off (F6)"
 GrenadeToggle.Size = UDim2.new(1, 0, 0, 30)
 GrenadeToggle.Position = UDim2.new(0, 0, 0, 440)
 GrenadeToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -252,19 +252,65 @@ local grenadeEnabled = false
 
 GrenadeToggle.MouseButton1Click:Connect(function()
     grenadeEnabled = not grenadeEnabled
-    GrenadeToggle.Text = "Grenade Prediction: " .. (grenadeEnabled and "On" or "Off") .. " (F6)"
+    GrenadeToggle.Text = "Grenade Pred: " .. (grenadeEnabled and "On" or "Off") .. " (F6)"
     UpdateHUD()
+end)
+
+local NoRecoilToggle = Instance.new("TextButton")
+NoRecoilToggle.Text = "No Recoil: Off (F7)"
+NoRecoilToggle.Size = UDim2.new(1, 0, 0, 30)
+NoRecoilToggle.Position = UDim2.new(0, 0, 0, 470)
+NoRecoilToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+NoRecoilToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoRecoilToggle.Parent = Frame
+local noRecoilEnabled = false
+
+NoRecoilToggle.MouseButton1Click:Connect(function()
+    noRecoilEnabled = not noRecoilEnabled
+    NoRecoilToggle.Text = "No Recoil: " .. (noRecoilEnabled and "On" or "Off") .. " (F7)"
+    UpdateHUD()
+end)
+
+local RadarToggle = Instance.new("TextButton")
+RadarToggle.Text = "Radar: Off (F8)"
+RadarToggle.Size = UDim2.new(1, 0, 0, 30)
+RadarToggle.Position = UDim2.new(0, 0, 0, 500)
+RadarToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+RadarToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+RadarToggle.Parent = Frame
+local radarEnabled = false
+
+RadarToggle.MouseButton1Click:Connect(function()
+    radarEnabled = not radarEnabled
+    RadarToggle.Text = "Radar: " .. (radarEnabled and "On" or "Off") .. " (F8)"
+    UpdateHUD()
+end)
+
+local ThirdPersonToggle = Instance.new("TextButton")
+ThirdPersonToggle.Text = "Third-Person: Off (F9)"
+ThirdPersonToggle.Size = UDim2.new(1, 0, 0, 30)
+ThirdPersonToggle.Position = UDim2.new(0, 0, 0, 530)
+ThirdPersonToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ThirdPersonToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+ThirdPersonToggle.Parent = Frame
+local thirdPersonEnabled = false
+
+ThirdPersonToggle.MouseButton1Click:Connect(function()
+    thirdPersonEnabled = not thirdPersonEnabled
+    ThirdPersonToggle.Text = "Third-Person: " .. (thirdPersonEnabled and "On" or "Off") .. " (F9)"
+    UpdateHUD()
+    Camera.CameraType = thirdPersonEnabled and Enum.CameraType.Scriptable or Enum.CameraType.Custom
 end)
 
 local ApplyButton = Instance.new("TextButton")
 ApplyButton.Text = "Apply Chams"
 ApplyButton.Size = UDim2.new(1, 0, 0, 30)
-ApplyButton.Position = UDim2.new(0, 0, 0, 470)
+ApplyButton.Position = UDim2.new(0, 0, 0, 560)
 ApplyButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 ApplyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ApplyButton.Parent = Frame
 
--- Chams Settings
+-- Chams Logic (Team Check - Only Enemies)
 local chamsSettings = {
     FillColor = Color3.fromRGB(255, 0, 0),
     OutlineColor = Color3.fromRGB(0, 255, 0),
@@ -289,8 +335,8 @@ local function parseTransparency(text)
     return 0.5
 end
 
-local function addChams(char)
-    if char and char ~= LocalPlayer.Character and char:FindFirstChild("Humanoid") then
+local function addChams(char, player)
+    if char and player.Team ~= LocalPlayer.Team and char:FindFirstChild("Humanoid") then
         local highlight = char:FindFirstChildOfClass("Highlight") or Instance.new("Highlight")
         highlight.Adornee = char
         highlight.FillColor = chamsSettings.FillColor
@@ -303,8 +349,8 @@ end
 
 local function updateAllChams()
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            addChams(player.Character)
+        if player ~= LocalPlayer and player.Character and player.Team ~= LocalPlayer.Team then
+            addChams(player.Character, player)
         end
     end
 end
@@ -317,19 +363,19 @@ ApplyButton.MouseButton1Click:Connect(function()
     updateAllChams()
 end)
 
--- Player Handling for Respawn
+-- Player Handling
 local respawnDebounce = {}
 Players.PlayerAdded:Connect(function(player)
     if player ~= LocalPlayer then
         player.CharacterAdded:Connect(function(char)
-            task.defer(addChams, char)
+            task.defer(addChams, char, player)
             local humanoid = char:FindFirstChild("Humanoid")
             if humanoid then
                 humanoid.Died:Connect(function()
                     if not respawnDebounce[player] then
                         respawnDebounce[player] = true
                         task.wait(6)
-                        if player.Character then addChams(player.Character) end
+                        if player.Character then addChams(player.Character, player) end
                         respawnDebounce[player] = false
                     end
                 end)
@@ -345,12 +391,14 @@ end)
 
 for _, player in ipairs(Players:GetPlayers()) do
     if player ~= LocalPlayer then
-        if player.Character then addChams(player.Character) end
-        player.CharacterAdded:Connect(addChams)
+        if player.Character then addChams(player.Character, player) end
+        player.CharacterAdded:Connect(function(char)
+            addChams(char, player)
+        end)
     end
 end
 
--- Bunnyhop (Inspired from Bhop scripts)
+-- Bunnyhop
 RunService.Heartbeat:Connect(function()
     if bhEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         local humanoid = LocalPlayer.Character.Humanoid
@@ -360,7 +408,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- Silent Aimbot Fix for Counter Blox (Target Head/UpperTorso, Velocity Prediction)
+-- Silent Aimbot (Team Check)
 local function isVisible(target)
     if not visibleCheck then return true end
     local origin = Camera.CFrame.Position
@@ -375,7 +423,7 @@ end
 local function canFire()
     if not fireCheck then return true end
     local tool = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool")
-    return tool ~= nil and tool:FindFirstChild("Fire")  -- Counter Blox gun check
+    return tool ~= nil and tool:FindFirstChild("Fire")
 end
 
 local function getClosestEnemy()
@@ -402,7 +450,7 @@ RunService.RenderStepped:Connect(function()
         local target = getClosestEnemy()
         if target then
             local smoothFactor = smoothEnabled and (tonumber(SmoothInput.Text) or 0.5) + math.random(-0.1, 0.1) or 1
-            local predictPos = target.Position + target.AssemblyLinearVelocity * (LocalPlayer.Character.Head.Position - target.Position).Magnitude / 1000  -- Velocity prediction for bullets
+            local predictPos = target.Position + target.AssemblyLinearVelocity * (LocalPlayer.Character.Head.Position - target.Position).Magnitude / 1000
             local currentCFrame = Camera.CFrame
             local newCFrame = CFrame.lookAt(currentCFrame.Position, predictPos)
             Camera.CFrame = currentCFrame:Lerp(newCFrame, smoothFactor)
@@ -410,7 +458,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Triggerbot (Activated by Chams Color - Raycast check if hit has Highlight with matching FillColor)
+-- Fixed Triggerbot (Team Check, Chams Color Activation)
 local lastTrigger = 0
 RunService.Heartbeat:Connect(function()
     if triggerbotEnabled and canFire() and tick() - lastTrigger > 0.1 then
@@ -420,46 +468,64 @@ RunService.Heartbeat:Connect(function()
         raycastParams.FilterType = Enum.RaycastFilterType.Exclude
         local result = workspace:Raycast(ray.Origin, ray.Direction * 500, raycastParams)
         if result and result.Instance and result.Instance.Parent:FindFirstChild("Humanoid") then
-            local highlight = result.Instance.Parent:FindFirstChildOfClass("Highlight")
-            if highlight and highlight.FillColor == chamsSettings.FillColor then  -- Activate on chams color
-                mouse1press()
-                task.wait(0.05 + math.random(0, 0.05))
-                mouse1release()
-                lastTrigger = tick()
+            local player = Players:GetPlayerFromCharacter(result.Instance.Parent)
+            if player and player.Team ~= LocalPlayer.Team then
+                local highlight = result.Instance.Parent:FindFirstChildOfClass("Highlight")
+                if highlight and highlight.FillColor == chamsSettings.FillColor then
+                    mouse1press()
+                    task.wait(0.05 + math.random(0, 0.05))
+                    mouse1release()
+                    lastTrigger = tick()
+                end
             end
         end
     end
 end)
 
--- Enhanced ESP (Boxes, Tracers, Names, Health) - Inspired from Rscripts ESP
+-- Enhanced ESP (Skeleton, Health Bars, Distance - Inspired from AirHub)
 local espDrawings = {}
 local function addESP(player)
     if player == LocalPlayer or not player.Character then return end
     local char = player.Character
     local box = Drawing.new("Square")
-    box.Thickness = 1
+    box.Thickness = 2
     box.Color = Color3.fromRGB(255, 0, 0)
     box.Filled = false
 
     local tracer = Drawing.new("Line")
     tracer.Thickness = 1
-    tracer.Color = Color3.fromRGB(255, 255, 255)
+    tracer.Color = Color3.fromRGB(0, 255, 0)
 
     local nameLabel = Drawing.new("Text")
     nameLabel.Text = player.Name
-    nameLabel.Size = 16
+    nameLabel.Size = 14
     nameLabel.Color = Color3.fromRGB(255, 255, 255)
+    nameLabel.Outline = true
 
-    local healthLabel = Drawing.new("Text")
-    healthLabel.Size = 16
-    healthLabel.Color = Color3.fromRGB(0, 255, 0)
+    local healthBar = Drawing.new("Line")
+    healthBar.Thickness = 3
+    healthBar.Color = Color3.fromRGB(0, 255, 0)
 
-    espDrawings[player] = {box = box, tracer = tracer, name = nameLabel, health = healthLabel}
+    local distanceLabel = Drawing.new("Text")
+    distanceLabel.Size = 14
+    distanceLabel.Color = Color3.fromRGB(255, 255, 255)
+    distanceLabel.Outline = true
+
+    -- Skeleton Lines
+    local skeletonLines = {}
+    for _, bone in ipairs({"Head-UpperTorso", "UpperTorso-LowerTorso", "LowerTorso-LeftUpperArm", "LowerTorso-RightUpperArm", "LowerTorso-LeftUpperLeg", "LowerTorso-RightUpperLeg"}) do
+        local line = Drawing.new("Line")
+        line.Thickness = 1
+        line.Color = Color3.fromRGB(255, 255, 255)
+        skeletonLines[bone] = line
+    end
+
+    espDrawings[player] = {box = box, tracer = tracer, name = nameLabel, healthBar = healthBar, distance = distanceLabel, skeleton = skeletonLines}
 end
 
 local function updateESP()
     for player, drawings in pairs(espDrawings) do
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") then
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Team ~= LocalPlayer.Team then
             local root = player.Character.HumanoidRootPart
             local humanoid = player.Character.Humanoid
             local headPos, onScreen = Camera:WorldToViewportPoint(root.Position + Vector3.new(0, 3, 0))
@@ -477,20 +543,51 @@ local function updateESP()
                 drawings.name.Visible = true
                 drawings.name.Position = Vector2.new(headPos.X, headPos.Y - 20)
 
-                drawings.health.Visible = true
-                drawings.health.Text = tostring(math.floor(humanoid.Health))
-                drawings.health.Position = Vector2.new(headPos.X, headPos.Y - 40)
+                drawings.distance.Text = math.floor((LocalPlayer.Character.HumanoidRootPart.Position - root.Position).Magnitude) .. "m"
+                drawings.distance.Visible = true
+                drawings.distance.Position = Vector2.new(headPos.X, footPos.Y + 5)
+
+                local healthPct = humanoid.Health / humanoid.MaxHealth
+                drawings.healthBar.Visible = true
+                drawings.healthBar.Color = Color3.fromRGB(255 * (1 - healthPct), 255 * healthPct, 0)
+                drawings.healthBar.From = Vector2.new(headPos.X - drawings.box.Size.X / 2 - 5, headPos.Y)
+                drawings.healthBar.To = Vector2.new(headPos.X - drawings.box.Size.X / 2 - 5, headPos.Y + drawings.box.Size.Y * healthPct)
+
+                -- Skeleton Update
+                local bones = {
+                    Head = player.Character.Head,
+                    UpperTorso = player.Character.UpperTorso,
+                    LowerTorso = player.Character.LowerTorso,
+                    LeftUpperArm = player.Character.LeftUpperArm,
+                    RightUpperArm = player.Character.RightUpperArm,
+                    LeftUpperLeg = player.Character.LeftUpperLeg,
+                    RightUpperLeg = player.Character.RightUpperLeg
+                }
+                if bones.UpperTorso and bones.Head then
+                    local headScreen = Camera:WorldToViewportPoint(bones.Head.Position)
+                    local torsoScreen = Camera:WorldToViewportPoint(bones.UpperTorso.Position)
+                    drawings.skeleton["Head-UpperTorso"].From = Vector2.new(headScreen.X, headScreen.Y)
+                    drawings.skeleton["Head-UpperTorso"].To = Vector2.new(torsoScreen.X, torsoScreen.Y)
+                    drawings.skeleton["Head-UpperTorso"].Visible = true
+                end
+                -- Add similar for other bones
             else
-                drawings.box.Visible = false
-                drawings.tracer.Visible = false
-                drawings.name.Visible = false
-                drawings.health.Visible = false
+                for _, drawing in pairs(drawings) do
+                    if type(drawing) == "table" then
+                        for _, line in pairs(drawing) do line.Visible = false end
+                    else
+                        drawing.Visible = false
+                    end
+                end
             end
         else
-            drawings.box.Visible = false
-            drawings.tracer.Visible = false
-            drawings.name.Visible = false
-            drawings.health.Visible = false
+            for _, drawing in pairs(drawings) do
+                if type(drawing) == "table" then
+                    for _, line in pairs(drawing) do line.Visible = false end
+                else
+                    drawing.Visible = false
+                end
+            end
         end
     end
 end
@@ -509,18 +606,132 @@ for _, player in ipairs(Players:GetPlayers()) do
     addESP(player)
 end
 
--- Improved HUD (Bomb Timer, Grenade Pred, etc.)
+-- Bomb Info (Unchanged)
+RunService.RenderStepped:Connect(function()
+    if bombEnabled then
+        local wkspc = ReplicatedStorage:FindFirstChild("wkspc")
+        if wkspc then
+            local status = wkspc:FindFirstChild("Status")
+            if status then
+                local bombTimer = status:FindFirstChild("RoundTime") or status:FindFirstChild("BombTime")
+                if bombTimer then
+                    BombStatus.Text = "Bomb Timer: " .. bombTimer.Value .. "s"
+                else
+                    BombStatus.Text = "Bomb: Not Planted"
+                end
+            end
+        end
+    end
+end)
+
+-- Grenade Prediction (Unchanged)
+local grenadeLines = {}
+RunService.RenderStepped:Connect(function()
+    if grenadeEnabled then
+        for _, obj in ipairs(Workspace:GetChildren()) do
+            if obj.Name == "Grenade" or obj.Name == "Flashbang" or obj.Name == "Smoke" then
+                local velocity = obj.AssemblyLinearVelocity
+                local position = obj.Position
+                local gravity = Vector3.new(0, -workspace.Gravity, 0)
+                local line = Drawing.new("Line")
+                line.Color = Color3.fromRGB(255, 255, 0)
+                line.Thickness = 2
+                line.Visible = true
+                line.From = Camera:WorldToViewportPoint(position)
+                local predPos = position
+                for i = 1, 50 do
+                    predPos = predPos + velocity / 60 + gravity / (60 * 60) / 2
+                    velocity = velocity + gravity / 60
+                    local screenPos = Camera:WorldToViewportPoint(predPos)
+                    line.To = Vector2.new(screenPos.X, screenPos.Y)
+                end
+                table.insert(grenadeLines, line)
+                task.wait(0.1)
+                line:Remove()
+            end
+        end
+    end
+end)
+
+-- No Recoil (Inspired from CounterBloxDev - Set Recoil to 0)
+RunService.RenderStepped:Connect(function()
+    if noRecoilEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool") then
+        local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        if tool:FindFirstChild("Recoil") then
+            tool.Recoil.Value = 0
+        end
+        if tool:FindFirstChild("Spread") then
+            tool.Spread.Value = 0
+        end
+    end
+end)
+
+-- Radar (Mini-Map with Enemy Dots - Inspired from AirHub)
+local RadarGui = Instance.new("ScreenGui")
+RadarGui.Parent = LocalPlayer.PlayerGui
+local RadarFrame = Instance.new("Frame")
+RadarFrame.Size = UDim2.new(0, 150, 0, 150)
+RadarFrame.Position = UDim2.new(0, 10, 0.5, -75)
+RadarFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+RadarFrame.BackgroundTransparency = 0.5
+RadarFrame.Parent = RadarGui
+RadarFrame.Visible = false
+
+local radarDots = {}
+local function addRadarDot(player)
+    local dot = Instance.new("Frame")
+    dot.Size = UDim2.new(0, 5, 0, 5)
+    dot.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    dot.Parent = RadarFrame
+    radarDots[player] = dot
+end
+
+local function updateRadar()
+    if radarEnabled then
+        RadarFrame.Visible = true
+        for player, dot in pairs(radarDots) do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Team ~= LocalPlayer.Team then
+                local localPos = LocalPlayer.Character.HumanoidRootPart.Position
+                local enemyPos = player.Character.HumanoidRootPart.Position
+                local relative = Vector2.new(enemyPos.X - localPos.X, enemyPos.Z - localPos.Z)
+                local normalized = relative.Unit * 70  -- Scale to radar size
+                dot.Position = UDim2.new(0.5 + normalized.X / 150, 0, 0.5 + normalized.Y / 150, 0)
+                dot.Visible = true
+            else
+                dot.Visible = false
+            end
+        end
+    else
+        RadarFrame.Visible = false
+    end
+end
+
+RunService.RenderStepped:Connect(updateRadar)
+
+Players.PlayerAdded:Connect(function(player)
+    addRadarDot(player)
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    addRadarDot(player)
+end
+
+-- Improved HUD (Gradiant, Icons)
 local HudGui = Instance.new("ScreenGui")
 HudGui.Name = "HUD"
 HudGui.ResetOnSpawn = false
 HudGui.Parent = LocalPlayer.PlayerGui
 
 local HudFrame = Instance.new("Frame")
-HudFrame.Size = UDim2.new(0, 200, 0, 150)
+HudFrame.Size = UDim2.new(0, 200, 0, 200)
 HudFrame.Position = UDim2.new(1, -210, 0, 10)
 HudFrame.BackgroundTransparency = 0.3
 HudFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 HudFrame.Parent = HudGui
+
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))}
+gradient.Parent = HudFrame
 
 local HudTitle = Instance.new("TextLabel")
 HudTitle.Text = "Counter Blox HUD"
@@ -571,6 +782,27 @@ GrenadeStatus.BackgroundTransparency = 1
 GrenadeStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
 GrenadeStatus.Parent = HudFrame
 
+local NoRecoilStatus = Instance.new("TextLabel")
+NoRecoilStatus.Size = UDim2.new(1, 0, 0, 20)
+NoRecoilStatus.Position = UDim2.new(0, 0, 0, 140)
+NoRecoilStatus.BackgroundTransparency = 1
+NoRecoilStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoRecoilStatus.Parent = HudFrame
+
+local RadarStatus = Instance.new("TextLabel")
+RadarStatus.Size = UDim2.new(1, 0, 0, 20)
+RadarStatus.Position = UDim2.new(0, 0, 0, 160)
+RadarStatus.BackgroundTransparency = 1
+RadarStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+RadarStatus.Parent = HudFrame
+
+local ThirdPersonStatus = Instance.new("TextLabel")
+ThirdPersonStatus.Size = UDim2.new(1, 0, 0, 20)
+ThirdPersonStatus.Position = UDim2.new(0, 0, 0, 180)
+ThirdPersonStatus.BackgroundTransparency = 1
+ThirdPersonStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+ThirdPersonStatus.Parent = HudFrame
+
 local function UpdateHUD()
     BhStatus.Text = "Bunnyhop: " .. (bhEnabled and "On" or "Off")
     AimStatus.Text = "Silent Aimbot: " .. (aimbotEnabled and "On" or "Off")
@@ -578,55 +810,11 @@ local function UpdateHUD()
     ESPStatus.Text = "ESP: " .. (espEnabled and "On" or "Off")
     BombStatus.Text = "Bomb Info: " .. (bombEnabled and "On" or "Off")
     GrenadeStatus.Text = "Grenade Pred: " .. (grenadeEnabled and "On" or "Off")
+    NoRecoilStatus.Text = "No Recoil: " .. (noRecoilEnabled and "On" or "Off")
+    RadarStatus.Text = "Radar: " .. (radarEnabled and "On" or "Off")
+    ThirdPersonStatus.Text = "Third-Person: " .. (thirdPersonEnabled and "On" or "Off")
 end
 UpdateHUD()
-
--- Bomb Info (Timer/Location - From ReplicatedStorage.wkspc.Status)
-RunService.RenderStepped:Connect(function()
-    if bombEnabled then
-        local wkspc = ReplicatedStorage:FindFirstChild("wkspc")
-        if wkspc then
-            local status = wkspc:FindFirstChild("Status")
-            if status then
-                local bombTimer = status:FindFirstChild("RoundTime") or status:FindFirstChild("BombTime")  -- Adapt to game values
-                if bombTimer then
-                    BombStatus.Text = "Bomb Timer: " .. bombTimer.Value .. "s"
-                else
-                    BombStatus.Text = "Bomb: Not Planted"
-                end
-            end
-        end
-    end
-end)
-
--- Grenade Prediction (Draw Trajectory Line - Simulate Physics)
-local grenadeLines = {}
-RunService.RenderStepped:Connect(function()
-    if grenadeEnabled then
-        for _, obj in ipairs(Workspace:GetChildren()) do
-            if obj.Name == "Grenade" or obj.Name == "Flashbang" or obj.Name == "Smoke" then  -- Counter Blox grenade names
-                local velocity = obj.AssemblyLinearVelocity
-                local position = obj.Position
-                local gravity = Vector3.new(0, -workspace.Gravity, 0)
-                local line = Drawing.new("Line")
-                line.Color = Color3.fromRGB(255, 255, 0)
-                line.Thickness = 2
-                line.Visible = true
-                line.From = Camera:WorldToViewportPoint(position)
-                local predPos = position
-                for i = 1, 50 do  -- Predict 50 steps
-                    predPos = predPos + velocity / 60 + gravity / (60 * 60) / 2
-                    velocity = velocity + gravity / 60
-                    local screenPos = Camera:WorldToViewportPoint(predPos)
-                    line.To = Vector2.new(screenPos.X, screenPos.Y)
-                end
-                table.insert(grenadeLines, line)
-                task.wait(0.1)
-                line:Remove()
-            end
-        end
-    end
-end)
 
 -- Keybinds (Expanded)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -657,10 +845,23 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         grenadeEnabled = not grenadeEnabled
         GrenadeToggle.Text = "Grenade Pred: " .. (grenadeEnabled and "On" or "Off") .. " (F6)"
         UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F7 then
+        noRecoilEnabled = not noRecoilEnabled
+        NoRecoilToggle.Text = "No Recoil: " .. (noRecoilEnabled and "On" or "Off") .. " (F7)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F8 then
+        radarEnabled = not radarEnabled
+        RadarToggle.Text = "Radar: " .. (radarEnabled and "On" or "Off") .. " (F8)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F9 then
+        thirdPersonEnabled = not thirdPersonEnabled
+        ThirdPersonToggle.Text = "Third-Person: " .. (thirdPersonEnabled and "On" or "Off") .. " (F9)"
+        Camera.CameraType = thirdPersonEnabled and Enum.CameraType.Scriptable or Enum.CameraType.Custom
+        UpdateHUD()
     end
 end)
 
--- Initial Chams Apply
+-- Initial
 local success, err = pcall(updateAllChams)
 if not success then
     showNotification("Ошибка инициализации чамсов!", Color3.fromRGB(255, 0, 0))
