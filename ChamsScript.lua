@@ -1,5 +1,4 @@
--- Optimized Counter Blox Script: Fixed Triggerbot (Team Check, Debug), Team Diff, Third-Person Fix (Offset), ESP Cleanup, Rage Features (Anti-Aim Spinbot, Double Tap, Fake Lag, Auto Shoot, Wallbang), Legit/Semi-Rage (Silent Aim, Legit AA)
--- Inspired by Fatality (Rage: Spinbot, DT, Fake Lag, Wallbang) and Mindate (Legit: Silent, Legit AA)
+-- Optimized Counter Blox Script: Fixed GUI Toggle (Insert Key), Bind Fixes, Anti-Detect (Delays, Synonyms), Rage (Fatality Style: Spinbot AA, DT, Fake Lag, Auto Shoot, Wallbang), Semi-Rage (Mindate Style: Legit AA, Silent Aim), ESP Cleanup, Third-Person Offset Fix
 -- LocalScript for Xeno v1.2.50U
 
 local Players = game:GetService("Players")
@@ -12,32 +11,32 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 
--- Injection Notification
-local function showNotification(message, color)
+-- Notification Function
+local function notifyMsg(msg, clr)
     local gui = Instance.new("ScreenGui")
     gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 50)
-    frame.Position = UDim2.new(0.5, -150, 0, 50)
-    frame.BackgroundColor3 = color or Color3.fromRGB(0, 255, 0)
-    frame.Parent = gui
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.Text = message
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.BackgroundTransparency = 1
-    label.Parent = frame
+    local frm = Instance.new("Frame")
+    frm.Size = UDim2.new(0, 300, 0, 50)
+    frm.Position = UDim2.new(0.5, -150, 0, 50)
+    frm.BackgroundColor3 = clr or Color3.fromRGB(0, 255, 0)
+    frm.Parent = gui
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 1, 0)
+    lbl.Text = msg
+    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    lbl.BackgroundTransparency = 1
+    lbl.Parent = frm
     task.wait(3)
     gui:Destroy()
 end
 
 pcall(function()
-    showNotification("Скрипт успешно загружен для Counter Blox!", Color3.fromRGB(0, 255, 0))
+    notifyMsg("Скрипт успешно загружен для Counter Blox!", Color3.fromRGB(0, 255, 0))
 end)
 
--- GUI Setup (Movable)
+-- GUI Setup (Toggle on Insert to avoid conflicts)
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ChamsConfig"
+ScreenGui.Name = "ConfigGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Enabled = false
@@ -45,7 +44,7 @@ ScreenGui.Enabled = false
 local Frame = Instance.new("Frame")
 Frame.Size = UDim2.new(0, 250, 0, 600)
 Frame.Position = UDim2.new(0.5, -125, 0.5, -300)
-Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 30)
 Frame.Parent = ScreenGui
 Frame.Active = true
 Frame.Draggable = true
@@ -57,7 +56,7 @@ Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Parent = Frame
 
--- Chams Inputs (Unchanged)
+-- Chams Inputs
 local FillColorLabel = Instance.new("TextLabel")
 FillColorLabel.Text = "Fill Color (R,G,B)"
 FillColorLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -110,7 +109,7 @@ OutlineTransInput.Position = UDim2.new(0, 0, 0, 170)
 OutlineTransInput.Text = "0"
 OutlineTransInput.Parent = Frame
 
--- Toggles (Added Rage/Legit)
+-- Toggles (Rage/Legit Added)
 local BunnyhopToggle = Instance.new("TextButton")
 BunnyhopToggle.Text = "Bunnyhop: Off (F1)"
 BunnyhopToggle.Size = UDim2.new(1, 0, 0, 30)
@@ -347,7 +346,7 @@ LegitAAToggle.MouseButton1Click:Connect(function()
 end)
 
 local ThirdPersonToggle = Instance.new("TextButton")
-ThirdPersonToggle.Text = "Third-Person: Off (Insert)"
+ThirdPersonToggle.Text = "Third-Person: Off (Home)"
 ThirdPersonToggle.Size = UDim2.new(1, 0, 0, 30)
 ThirdPersonToggle.Position = UDim2.new(0, 0, 0, 650)
 ThirdPersonToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -357,7 +356,7 @@ local thirdPersonEnabled = false
 
 ThirdPersonToggle.MouseButton1Click:Connect(function()
     thirdPersonEnabled = not thirdPersonEnabled
-    ThirdPersonToggle.Text = "Third-Person: " .. (thirdPersonEnabled and "On" or "Off") .. " (Insert)"
+    ThirdPersonToggle.Text = "Third-Person: " .. (thirdPersonEnabled and "On" or "Off") .. " (Home)"
     UpdateHUD()
 end)
 
@@ -369,7 +368,7 @@ ApplyButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 ApplyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ApplyButton.Parent = Frame
 
--- Chams Logic (Enemies Only)
+-- Chams Logic
 local chamsSettings = {
     FillColor = Color3.fromRGB(255, 0, 0),
     OutlineColor = Color3.fromRGB(0, 255, 0),
@@ -424,17 +423,20 @@ ApplyButton.MouseButton1Click:Connect(function()
     updateAllChams()
 end)
 
--- Player Handling (Respawn Fix)
+-- Player Handling
+local respawnDebounce = {}
 Players.PlayerAdded:Connect(function(player)
     if player ~= LocalPlayer then
         player.CharacterAdded:Connect(function(char)
-            addChams(char, player)
-            local humanoid = char:WaitForChild("Humanoid", 5)
+            task.defer(addChams, char, player)
+            local humanoid = char:FindFirstChild("Humanoid")
             if humanoid then
                 humanoid.Died:Connect(function()
-                    task.wait(Players.RespawnTime + 0.5)
-                    if player.Character then
-                        addChams(player.Character, player)
+                    if not respawnDebounce[player] then
+                        respawnDebounce[player] = true
+                        task.wait(6)
+                        if player.Character then addChams(player.Character, player) end
+                        respawnDebounce[player] = false
                     end
                 end)
             end
@@ -442,32 +444,31 @@ Players.PlayerAdded:Connect(function(player)
     end
 end)
 
-for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        player.CharacterAdded:Connect(function(char)
-            addChams(char, player)
-        end)
-        if player.Character then
-            addChams(player.Character, player)
-        end
-    end
-end
-
-LocalPlayer.CharacterAdded:Connect(function(char)
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
     updateAllChams()
 end)
 
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        if player.Character then addChams(player.Character, player) end
+        player.CharacterAdded:Connect(function(char)
+            addChams(char, player)
+        end)
+    end
+end
+
 -- Bunnyhop
-RunService.RenderStepped:Connect(function()
+RunService.Heartbeat:Connect(function()
     if bhEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         local humanoid = LocalPlayer.Character.Humanoid
-        if humanoid:GetState() == Enum.HumanoidStateType.Freefall and UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        if humanoid.FloorMaterial ~= Enum.Material.Air and UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            humanoid.Jump = true
         end
     end
 end)
 
--- Silent Aimbot (Enemies Only)
+-- Silent Aimbot
 local function isVisible(target)
     if not visibleCheck then return true end
     local origin = Camera.CFrame.Position
@@ -482,7 +483,7 @@ end
 local function canFire()
     if not fireCheck then return true end
     local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
-    return tool and tool:FindFirstChild("Handle")
+    return tool ~= nil
 end
 
 local function getClosestEnemy()
@@ -494,7 +495,7 @@ local function getClosestEnemy()
             local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
             if onScreen then
                 local mouseDist = (mousePos - Vector2.new(screenPos.X, screenPos.Y)).Magnitude
-                if mouseDist < dist and isVisible(head) then
+                if mouseDist < dist and mouseDist < 200 and isVisible(head) then
                     dist = mouseDist
                     closest = head
                 end
@@ -508,8 +509,8 @@ RunService.RenderStepped:Connect(function()
     if aimbotEnabled and canFire() then
         local target = getClosestEnemy()
         if target then
-            local smoothFactor = smoothEnabled and (tonumber(SmoothInput.Text) or 0.5) or 1
-            local targetPos = target.Position
+            local smoothFactor = smoothEnabled and (tonumber(SmoothInput.Text) or 0.5) + math.random(-0.1, 0.1) or 1
+            local targetPos = target.Position + target.Velocity * 0.1
             local currentCFrame = Camera.CFrame
             local newCFrame = CFrame.lookAt(currentCFrame.Position, targetPos)
             Camera.CFrame = currentCFrame:Lerp(newCFrame, smoothFactor)
@@ -517,22 +518,22 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Fixed Triggerbot (Enemies Only, Chams Color, Debug Notification)
+-- Fixed Triggerbot (Enemies Only, Chams Color)
 local lastTrigger = 0
-RunService.RenderStepped:Connect(function()
+RunService.Heartbeat:Connect(function()
     if triggerbotEnabled and canFire() and tick() - lastTrigger > 0.1 then
-        local unitRay = Mouse.UnitRay
+        local ray = Camera:ScreenPointToRay(Mouse.X, Mouse.Y)
         local raycastParams = RaycastParams.new()
         raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
         raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-        local result = workspace:Raycast(unitRay.Origin, unitRay.Direction * 500, raycastParams)
+        local result = workspace:Raycast(ray.Origin, ray.Direction * 500, raycastParams)
         if result and result.Instance and result.Instance.Parent:FindFirstChild("Humanoid") then
             local player = Players:GetPlayerFromCharacter(result.Instance.Parent)
             if player and player.Team ~= LocalPlayer.Team then
                 local highlight = result.Instance.Parent:FindFirstChildOfClass("Highlight")
                 if highlight and highlight.FillColor == chamsSettings.FillColor then
                     mouse1press()
-                    task.wait(0.05)
+                    task.wait(0.05 + math.random(0, 0.05))
                     mouse1release()
                     lastTrigger = tick()
                 end
@@ -541,7 +542,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Enhanced ESP (Skeleton, Health Bars, Cleanup on Death/Leave)
+-- Enhanced ESP (Skeleton, Health Bars, Cleanup)
 local espDrawings = {}
 local function addESP(player)
     if player == LocalPlayer or not player.Character then return end
@@ -571,8 +572,7 @@ local function addESP(player)
     distanceLabel.Outline = true
 
     local skeletonLines = {}
-    local bones = {"Head-UpperTorso", "UpperTorso-LowerTorso", "LowerTorso-LeftUpperArm", "LowerTorso-RightUpperArm", "LowerTorso-LeftUpperLeg", "LowerTorso-RightUpperLeg"}
-    for _, bone in ipairs(bones) do
+    for _, bone in ipairs({"Head-UpperTorso", "UpperTorso-LowerTorso", "LowerTorso-LeftUpperArm", "LowerTorso-RightUpperArm", "LowerTorso-LeftUpperLeg", "LowerTorso-RightUpperLeg"}) do
         local line = Drawing.new("Line")
         line.Thickness = 1
         line.Color = Color3.fromRGB(255, 255, 255)
@@ -638,7 +638,7 @@ local function updateESP()
                 drawings.skeleton["Head-UpperTorso"].From = Vector2.new(headScreen.X, headScreen.Y)
                 drawings.skeleton["Head-UpperTorso"].To = Vector2.new(torsoScreen.X, torsoScreen.Y)
                 drawings.skeleton["Head-UpperTorso"].Visible = true
-                -- Add for other bones similarly
+                -- Repeat for other bones
             else
                 for _, drawing in pairs(drawings) do
                     if type(drawing) == "table" then
@@ -690,12 +690,17 @@ end
 -- Bomb Info
 RunService.RenderStepped:Connect(function()
     if bombEnabled then
-        -- Assume bomb object in Workspace
-        local bomb = Workspace:FindFirstChild("Bomb") or ReplicatedStorage:FindFirstChild("Bomb")
-        if bomb then
-            BombStatus.Text = "Bomb Timer: " .. (bomb:FindFirstChild("Timer") and bomb.Timer.Value or "Unknown")
-        else
-            BombStatus.Text = "Bomb: Not Planted"
+        local wkspc = ReplicatedStorage:FindFirstChild("wkspc")
+        if wkspc then
+            local status = wkspc:FindFirstChild("Status")
+            if status then
+                local bombTimer = status:FindFirstChild("RoundTime") or status:FindFirstChild("BombTime")
+                if bombTimer then
+                    BombStatus.Text = "Bomb Timer: " .. bombTimer.Value .. "s"
+                else
+                    BombStatus.Text = "Bomb: Not Planted"
+                end
+            end
         end
     end
 end)
@@ -720,33 +725,23 @@ RunService.RenderStepped:Connect(function()
                     velocity = velocity + gravity / 60
                     local screenPos = Camera:WorldToViewportPoint(predPos)
                     line.To = Vector2.new(screenPos.X, screenPos.Y)
-                    local nextPos = predPos + velocity / 60 + gravity / (60 * 60) / 2
-                    local nextScreen = Camera:WorldToViewportPoint(nextPos)
-                    line = Drawing.new("Line")
-                    line.Color = Color3.fromRGB(255, 255, 0)
-                    line.Thickness = 2
-                    line.Visible = true
-                    line.From = Vector2.new(screenPos.X, screenPos.Y)
-                    line.To = Vector2.new(nextScreen.X, nextScreen.Y)
                 end
                 table.insert(grenadeLines, line)
+                task.wait(0.1)
+                line:Remove()
             end
         end
-        for _, line in ipairs(grenadeLines) do
-            line:Remove()
-        end
-        grenadeLines = {}
     end
 end)
 
 -- Rage: Anti-Aim (Spinbot)
 RunService.Stepped:Connect(function()
     if antiAimEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(1800), 0)  -- Fast spin
+        LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(1800), 0)
     end
 end)
 
--- Rage: Double Tap (Rapid Fire)
+-- Rage: Double Tap
 local lastShot = 0
 RunService.RenderStepped:Connect(function()
     if doubleTapEnabled and canFire() and tick() - lastShot > 0.05 then
@@ -760,7 +755,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Rage: Fake Lag (Teleport Lag Switch)
+-- Rage: Fake Lag
 local lagTicks = 0
 RunService.Stepped:Connect(function()
     if fakeLagEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -774,7 +769,7 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- Rage: Auto Shoot (On Enemy in Crosshair)
+-- Rage: Auto Shoot
 RunService.RenderStepped:Connect(function()
     if autoShootEnabled and canFire() then
         local target = getClosestEnemy()
@@ -786,8 +781,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Rage: Wallbang (Shoot Through Walls - Ignore Visible Check for Trigger/Aim)
--- Modify isVisible to always return true if wallbangEnabled
+-- Rage: Wallbang (Ignore Visible for Aim/Trigger)
 local function isVisible(target)
     if wallbangEnabled then return true end
     if not visibleCheck then return true end
@@ -800,27 +794,215 @@ local function isVisible(target)
     return not result or result.Instance:IsDescendantOf(target.Parent)
 end
 
--- Semi-Rage: Legit AA (Fake Angles - Slight Offset)
+-- Semi-Rage: Legit AA
 RunService.Stepped:Connect(function()
     if legitAAEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(45), 0)  -- Slight fake angle
+        LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(45), 0)
     end
 end)
 
--- Third-Person Fix (Camera Offset, No Console Errors)
+-- Third-Person Fix (Offset, No Errors)
 RunService.RenderStepped:Connect(function()
     if thirdPersonEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         Camera.CameraType = Enum.CameraType.Scriptable
         local root = LocalPlayer.Character.HumanoidRootPart
-        Camera.CFrame = CFrame.new(root.Position - root.CFrame.LookVector * 10 + Vector3.new(0, 5, 0), root.Position)
+        Camera.CFrame = CFrame.new(root.Position - (root.CFrame.LookVector * 10) + Vector3.new(0, 5, 0), root.Position)
     else
         Camera.CameraType = Enum.CameraType.Custom
     end
 end)
 
--- HUD (Unchanged, Add New Status)
--- Add statuses for new features in HUD and UpdateHUD()
+-- HUD
+local HudGui = Instance.new("ScreenGui")
+HudGui.Name = "HUD"
+HudGui.ResetOnSpawn = false
+HudGui.Parent = LocalPlayer.PlayerGui
+
+local HudFrame = Instance.new("Frame")
+HudFrame.Size = UDim2.new(0, 200, 0, 200)
+HudFrame.Position = UDim2.new(1, -210, 0, 10)
+HudFrame.BackgroundTransparency = 0.3
+HudFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+HudFrame.Parent = HudGui
+
+local HudTitle = Instance.new("TextLabel")
+HudTitle.Text = "Counter Blox HUD"
+HudTitle.Size = UDim2.new(1, 0, 0, 20)
+HudTitle.BackgroundTransparency = 1
+HudTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+HudTitle.Parent = HudFrame
+
+local BhStatus = Instance.new("TextLabel")
+BhStatus.Size = UDim2.new(1, 0, 0, 20)
+BhStatus.Position = UDim2.new(0, 0, 0, 20)
+BhStatus.BackgroundTransparency = 1
+BhStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+BhStatus.Parent = HudFrame
+
+local AimStatus = Instance.new("TextLabel")
+AimStatus.Size = UDim2.new(1, 0, 0, 20)
+AimStatus.Position = UDim2.new(0, 0, 0, 40)
+AimStatus.BackgroundTransparency = 1
+AimStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimStatus.Parent = HudFrame
+
+local TrigStatus = Instance.new("TextLabel")
+TrigStatus.Size = UDim2.new(1, 0, 0, 20)
+TrigStatus.Position = UDim2.new(0, 0, 0, 60)
+TrigStatus.BackgroundTransparency = 1
+TrigStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+TrigStatus.Parent = HudFrame
+
+local ESPStatus = Instance.new("TextLabel")
+ESPStatus.Size = UDim2.new(1, 0, 0, 20)
+ESPStatus.Position = UDim2.new(0, 0, 0, 80)
+ESPStatus.BackgroundTransparency = 1
+ESPStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPStatus.Parent = HudFrame
+
+local BombStatus = Instance.new("TextLabel")
+BombStatus.Size = UDim2.new(1, 0, 0, 20)
+BombStatus.Position = UDim2.new(0, 0, 0, 100)
+BombStatus.BackgroundTransparency = 1
+BombStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+BombStatus.Parent = HudFrame
+
+local GrenadeStatus = Instance.new("TextLabel")
+GrenadeStatus.Size = UDim2.new(1, 0, 0, 20)
+GrenadeStatus.Position = UDim2.new(0, 0, 0, 120)
+GrenadeStatus.BackgroundTransparency = 1
+GrenadeStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+GrenadeStatus.Parent = HudFrame
+
+local AntiAimStatus = Instance.new("TextLabel")
+AntiAimStatus.Size = UDim2.new(1, 0, 0, 20)
+AntiAimStatus.Position = UDim2.new(0, 0, 0, 140)
+AntiAimStatus.BackgroundTransparency = 1
+AntiAimStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+AntiAimStatus.Parent = HudFrame
+
+local DoubleTapStatus = Instance.new("TextLabel")
+DoubleTapStatus.Size = UDim2.new(1, 0, 0, 20)
+DoubleTapStatus.Position = UDim2.new(0, 0, 0, 160)
+DoubleTapStatus.BackgroundTransparency = 1
+DoubleTapStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+DoubleTapStatus.Parent = HudFrame
+
+local FakeLagStatus = Instance.new("TextLabel")
+FakeLagStatus.Size = UDim2.new(1, 0, 0, 20)
+FakeLagStatus.Position = UDim2.new(0, 0, 0, 180)
+FakeLagStatus.BackgroundTransparency = 1
+FakeLagStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+FakeLagStatus.Parent = HudFrame
+
+local AutoShootStatus = Instance.new("TextLabel")
+AutoShootStatus.Size = UDim2.new(1, 0, 0, 20)
+AutoShootStatus.Position = UDim2.new(0, 0, 0, 200)
+AutoShootStatus.BackgroundTransparency = 1
+AutoShootStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoShootStatus.Parent = HudFrame
+
+local WallbangStatus = Instance.new("TextLabel")
+WallbangStatus.Size = UDim2.new(1, 0, 0, 20)
+WallbangStatus.Position = UDim2.new(0, 0, 0, 220)
+WallbangStatus.BackgroundTransparency = 1
+WallbangStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+WallbangStatus.Parent = HudFrame
+
+local LegitAAStatus = Instance.new("TextLabel")
+LegitAAStatus.Size = UDim2.new(1, 0, 0, 20)
+LegitAAStatus.Position = UDim2.new(0, 0, 0, 240)
+LegitAAStatus.BackgroundTransparency = 1
+LegitAAStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+LegitAAStatus.Parent = HudFrame
+
+local ThirdPersonStatus = Instance.new("TextLabel")
+ThirdPersonStatus.Size = UDim2.new(1, 0, 0, 20)
+ThirdPersonStatus.Position = UDim2.new(0, 0, 0, 260)
+ThirdPersonStatus.BackgroundTransparency = 1
+ThirdPersonStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+ThirdPersonStatus.Parent = HudFrame
+
+local function UpdateHUD()
+    BhStatus.Text = "Bunnyhop: " .. (bhEnabled and "On" or "Off")
+    AimStatus.Text = "Silent Aimbot: " .. (aimbotEnabled and "On" or "Off")
+    TrigStatus.Text = "Triggerbot: " .. (triggerbotEnabled and "On" or "Off")
+    ESPStatus.Text = "ESP: " .. (espEnabled and "On" or "Off")
+    BombStatus.Text = "Bomb Info: " .. (bombEnabled and "On" or "Off")
+    GrenadeStatus.Text = "Grenade Pred: " .. (grenadeEnabled and "On" or "Off")
+    AntiAimStatus.Text = "Anti-Aim: " .. (antiAimEnabled and "On" or "Off")
+    DoubleTapStatus.Text = "Double Tap: " .. (doubleTapEnabled and "On" or "Off")
+    FakeLagStatus.Text = "Fake Lag: " .. (fakeLagEnabled and "On" or "Off")
+    AutoShootStatus.Text = "Auto Shoot: " .. (autoShootEnabled and "On" or "Off")
+    WallbangStatus.Text = "Wallbang: " .. (wallbangEnabled and "On" or "Off")
+    LegitAAStatus.Text = "Legit AA: " .. (legitAAEnabled and "On" or "Off")
+    ThirdPersonStatus.Text = "Third-Person: " .. (thirdPersonEnabled and "On" or "Off")
+end
+UpdateHUD()
+
+-- Keybinds (GUI on Insert, Binds F1-F12, Home for Third-Person)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Insert then
+        ScreenGui.Enabled = not ScreenGui.Enabled
+    elseif input.KeyCode == Enum.KeyCode.F1 then
+        bhEnabled = not bhEnabled
+        BunnyhopToggle.Text = "Bunnyhop: " .. (bhEnabled and "On" or "Off") .. " (F1)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F2 then
+        aimbotEnabled = not aimbotEnabled
+        AimbotToggle.Text = "Silent Aimbot: " .. (aimbotEnabled and "On" or "Off") .. " (F2)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F3 then
+        triggerbotEnabled = not triggerbotEnabled
+        TriggerbotToggle.Text = "Triggerbot: " .. (triggerbotEnabled and "On" or "Off") .. " (F3)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F4 then
+        espEnabled = not espEnabled
+        ESPToggle.Text = "ESP: " .. (espEnabled and "On" or "Off") .. " (F4)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F5 then
+        bombEnabled = not bombEnabled
+        BombToggle.Text = "Bomb Info: " .. (bombEnabled and "On" or "Off") .. " (F5)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F6 then
+        grenadeEnabled = not grenadeEnabled
+        GrenadeToggle.Text = "Grenade Pred: " .. (grenadeEnabled and "On" or "Off") .. " (F6)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F7 then
+        antiAimEnabled = not antiAimEnabled
+        AntiAimToggle.Text = "Anti-Aim (Spinbot): " .. (antiAimEnabled and "On" or "Off") .. " (F7)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F8 then
+        doubleTapEnabled = not doubleTapEnabled
+        DoubleTapToggle.Text = "Double Tap: " .. (doubleTapEnabled and "On" or "Off") .. " (F8)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F9 then
+        fakeLagEnabled = not fakeLagEnabled
+        FakeLagToggle.Text = "Fake Lag: " .. (fakeLagEnabled and "On" or "Off") .. " (F9)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F10 then
+        autoShootEnabled = not autoShootEnabled
+        AutoShootToggle.Text = "Auto Shoot: " .. (autoShootEnabled and "On" or "Off") .. " (F10)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F11 then
+        wallbangEnabled = not wallbangEnabled
+        WallbangToggle.Text = "Wallbang: " .. (wallbangEnabled and "On" or "Off") .. " (F11)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.F12 then
+        legitAAEnabled = not legitAAEnabled
+        LegitAAToggle.Text = "Legit AA: " .. (legitAAEnabled and "On" or "Off") .. " (F12)"
+        UpdateHUD()
+    elseif input.KeyCode == Enum.KeyCode.Home then
+        thirdPersonEnabled = not thirdPersonEnabled
+        ThirdPersonToggle.Text = "Third-Person: " .. (thirdPersonEnabled and "On" or "Off") .. " (Home)"
+        UpdateHUD()
+    end
+end)
 
 -- Initial
-updateAllChams()
+local success, err = pcall(updateAllChams)
+if not success then
+    notifyMsg("Ошибка инициализации чамсов!", Color3.fromRGB(255, 0, 0))
+end
 UpdateHUD()
