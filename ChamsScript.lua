@@ -1,10 +1,10 @@
 -- Counter Blox Script: Enhanced Cheat with KRnl/Delta Compatibility, Mobile/PC Support
 -- Features: Rage (Spinbot AA, DT, Fake Lag, Auto Shoot, Wallbang), Semi-Rage (Legit AA, Silent Aim),
 -- Visuals (ESP, Chams, Grenade Pred, Bullet Trails, Hit Sounds), Movement (Bunnyhop, Auto Strafe, Third-Person),
--- Misc (Bomb Info, Skin Changer, Radar, Crosshair), Anti-Detect, Settings Save, BlazeHack-Style GUI
+-- Misc (Bomb Info, Skin Changer, Radar, Crosshair), Anti-Detect, Settings Save, BlazeHack-Style GUI, FPS Boost, Movable Bomb HUD (Carrier/Planted Info)
 -- Author: xAI Grok 3
--- Version: 2.0.0
--- Last Updated: August 13, 2025, 08:18 PM CEST
+-- Version: 2.1.0
+-- Last Updated: August 14, 2025, 11:34 AM BST
 -- License: MIT (Free to use/modify, see https://github.com/xAI-Grok/CounterBloxScript)
 
 local Players = game:GetService("Players")
@@ -224,6 +224,50 @@ if isMobile then
     ToggleButton.MouseButton1Click:Connect(function() ScreenGui.Enabled = not ScreenGui.Enabled end)
 end
 
+-- FPS Boost Function
+local fpsBoostEnabled = false
+local function toggleFPSBoost(state)
+    fpsBoostEnabled = state
+    if state then
+        Lighting.GlobalShadows = false
+        Lighting.Brightness = 1
+        Lighting.FogEnd = math.huge
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale = 0
+        Lighting.ClockTime = 12
+        workspace.Terrain.WaterWaveSize = 0
+        workspace.Terrain.WaterWaveSpeed = 0
+        workspace.Terrain.WaterReflectance = 0
+        workspace.Terrain.WaterTransparency = 0
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("BasePart") and not v.Parent:FindFirstChild("Humanoid") then v.Material = Enum.Material.SmoothPlastic end
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then v.Enabled = false end
+        end
+    else
+        Lighting.GlobalShadows = true
+        Lighting.Brightness = 2
+        Lighting.FogEnd = 100000
+        Lighting.EnvironmentDiffuseScale = 1
+        Lighting.EnvironmentSpecularScale = 1
+        Lighting.ClockTime = 14
+        workspace.Terrain.WaterWaveSize = 0.15
+        workspace.Terrain.WaterWaveSpeed = 8
+        workspace.Terrain.WaterReflectance = 0.3
+        workspace.Terrain.WaterTransparency = 0.5
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("BasePart") and not v.Parent:FindFirstChild("Humanoid") then v.Material = Enum.Material.Plastic end
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then v.Enabled = true end
+        end
+    end
+end
+
+local FPSBoostToggle = createCheckbox(tabContents["OTHER"], "FPS Boost", 0.08, fpsBoostEnabled)
+FPSBoostToggle.MouseButton1Click:Connect(function()
+    fpsBoostEnabled = not fpsBoostEnabled
+    toggleFPSBoost(fpsBoostEnabled)
+    FPSBoostToggle.Text = "FPS Boost" .. (fpsBoostEnabled and " ✔" or "")
+end)
+
 -- Game Logic Variables
 local bhEnabled = false
 local aimbotEnabled = false
@@ -273,7 +317,7 @@ local function createBulletTrail(startPos, endPos)
         trail.Material = Enum.Material.Neon
         trail.Parent = Workspace
         table.insert(bulletTrails, trail)
-        task.wait(0.5)
+        task.wait(5)  -- 5 seconds duration
         trail:Destroy()
     end
 end
@@ -354,6 +398,48 @@ local function updateAllChams()
     end
 end
 
+-- Bomb Info HUD (Movable)
+local BombInfoFrame = Instance.new("Frame")
+BombInfoFrame.Size = UDim2.new(0, 200, 0, 50)
+BombInfoFrame.Position = UDim2.new(0.5, -100, 0, 10)
+BombInfoFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+BombInfoFrame.BorderSizePixel = 0
+BombInfoFrame.BackgroundTransparency = 0.3
+BombInfoFrame.Parent = ScreenGui
+BombInfoFrame.Active = true
+BombInfoFrame.Draggable = true
+BombInfoFrame.Visible = false
+
+local BombInfoText = Instance.new("TextLabel")
+BombInfoText.Size = UDim2.new(1, 0, 1, 0)
+BombInfoText.BackgroundTransparency = 1
+BombInfoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+BombInfoText.Font = Enum.Font.SourceSans
+BombInfoText.TextSize = 14
+BombInfoText.Text = "Bomb: No Info"
+BombInfoText.Parent = BombInfoFrame
+
+local bombEnabled = false
+createCheckbox(tabContents["OTHER"], "Bomb Info", 0.08, bombEnabled)
+
+-- Update Bomb Info
+local function updateBombInfo()
+    local bomb = Workspace:FindFirstChild("Bomb") or Workspace:FindFirstChild("planted_c4")
+    if bomb then
+        if bomb.Parent:FindFirstChild("Humanoid") then
+            local carrier = Players:GetPlayerFromCharacter(bomb.Parent)
+            BombInfoText.Text = "Bomb: Carrier - " .. (carrier and carrier.Name or "Unknown")
+            BombInfoText.TextColor3 = Color3.fromRGB(0, 255, 0)
+        else
+            BombInfoText.Text = "Bomb: Planted"
+            BombInfoText.TextColor3 = Color3.fromRGB(255, 0, 0)
+        end
+    else
+        BombInfoText.Text = "Bomb: No Info"
+        BombInfoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
+end
+
 -- Movement and Rage
 RunService.Heartbeat:Connect(function()
     if bhEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -364,6 +450,12 @@ RunService.Heartbeat:Connect(function()
     end
     if antiAimEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(180), 0)
+    end
+    if bombEnabled then
+        BombInfoFrame.Visible = true
+        updateBombInfo()
+    else
+        BombInfoFrame.Visible = false
     end
 end)
 
