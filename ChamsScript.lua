@@ -1,10 +1,10 @@
--- Counter Blox Script: Enhanced Cheat with KRnl/Delta Compatibility, Mobile/PC Support
+-- Counter Blox Script: Enhanced Cheat with Xeno Compatibility
 -- Features: Rage (Spinbot AA, DT, Fake Lag, Auto Shoot, Wallbang), Semi-Rage (Legit AA, Silent Aim),
 -- Visuals (ESP, Chams, Grenade Pred, Bullet Trails, Hit Sounds), Movement (Bunnyhop, Auto Strafe, Third-Person),
--- Misc (Bomb Info, Skin Changer, Radar, Crosshair), Anti-Detect, Settings Save, BlazeHack-Style GUI, FPS Boost, Movable Bomb HUD (Carrier/Planted Info)
+-- Misc (Bomb Info, Skin Changer, Radar, Crosshair), Anti-Detect, Settings Save, BlazeHack-Style GUI, FPS Boost
 -- Author: xAI Grok 3
--- Version: 2.1.0
--- Last Updated: August 14, 2025, 11:34 AM BST
+-- Version: 2.2.0
+-- Last Updated: August 16, 2025, 01:32 PM CEST
 -- License: MIT (Free to use/modify, see https://github.com/xAI-Grok/CounterBloxScript)
 
 local Players = game:GetService("Players")
@@ -20,7 +20,6 @@ local Mouse = LocalPlayer:GetMouse()
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
-local isMobile = UserInputService.TouchEnabled
 
 -- Notification System
 local function notifyMsg(msg, clr, duration)
@@ -32,7 +31,6 @@ local function notifyMsg(msg, clr, duration)
         })
     end)
 end
-notifyMsg("Скрипт загружается...", Color3.fromRGB(0, 255, 0), 3)
 
 -- Settings Save
 local settingsStore = DataStoreService:GetDataStore("CounterBloxSettings")
@@ -47,8 +45,8 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Enabled = false
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, isMobile and 300 or 400, 0, isMobile and 300 or 250)
-MainFrame.Position = UDim2.new(0.5, -(isMobile and 150 or 200), 0.5, -(isMobile and 150 or 125))
+MainFrame.Size = UDim2.new(0, 400, 0, 250)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
@@ -212,18 +210,6 @@ otherLabel.Position = UDim2.new(0, 0, 0, 0)
 otherLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 otherLabel.Parent = tabContents["OTHER"]
 
--- Mobile Toggle
-if isMobile then
-    local ToggleButton = Instance.new("TextButton")
-    ToggleButton.Text = "Toggle GUI"
-    ToggleButton.Size = UDim2.new(0, 100, 0, 50)
-    ToggleButton.Position = UDim2.new(0, 10, 0, 10)
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ToggleButton.Parent = ScreenGui
-    ToggleButton.MouseButton1Click:Connect(function() ScreenGui.Enabled = not ScreenGui.Enabled end)
-end
-
 -- FPS Boost Function
 local fpsBoostEnabled = false
 local function toggleFPSBoost(state)
@@ -291,7 +277,7 @@ local hitSoundEnabled = false
 local bulletTrailsEnabled = false
 
 -- Hit Sound
-local hitSoundId = "rbxassetid://1837829537" -- Default hit sound (can be changed)
+local hitSoundId = "rbxassetid://1837829537"
 local function playHitSound()
     if hitSoundEnabled then
         local sound = Instance.new("Sound")
@@ -303,22 +289,25 @@ local function playHitSound()
     end
 end
 
--- Bullet Trails
+-- Bullet Trails (Only for Local Player)
 local bulletTrails = {}
 local function createBulletTrail(startPos, endPos)
-    if bulletTrailsEnabled then
-        local trail = Instance.new("Part")
-        trail.Size = Vector3.new(0.1, 0.1, (startPos - endPos).Magnitude)
-        trail.Position = (startPos + endPos) / 2
-        trail.CFrame = CFrame.lookAt(startPos, endPos) * CFrame.new(0, 0, -trail.Size.Z / 2)
-        trail.Anchored = true
-        trail.CanCollide = false
-        trail.BrickColor = BrickColor.new("Bright red")
-        trail.Material = Enum.Material.Neon
-        trail.Parent = Workspace
-        table.insert(bulletTrails, trail)
-        task.wait(5)  -- 5 seconds duration
-        trail:Destroy()
+    if bulletTrailsEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local shooter = LocalPlayer.Character.HumanoidRootPart
+        if (startPos - shooter.Position).Magnitude < 10 then -- Check if shot originates from local player
+            local trail = Instance.new("Part")
+            trail.Size = Vector3.new(0.1, 0.1, (startPos - endPos).Magnitude)
+            trail.Position = (startPos + endPos) / 2
+            trail.CFrame = CFrame.lookAt(startPos, endPos) * CFrame.new(0, 0, -trail.Size.Z / 2)
+            trail.Anchored = true
+            trail.CanCollide = false
+            trail.BrickColor = BrickColor.new("Bright red")
+            trail.Material = Enum.Material.Neon
+            trail.Parent = Workspace
+            table.insert(bulletTrails, trail)
+            task.wait(5) -- 5 seconds duration
+            trail:Destroy()
+        end
     end
 end
 
@@ -420,7 +409,7 @@ BombInfoText.Text = "Bomb: No Info"
 BombInfoText.Parent = BombInfoFrame
 
 local bombEnabled = false
-createCheckbox(tabContents["OTHER"], "Bomb Info", 0.08, bombEnabled)
+createCheckbox(tabContents["OTHER"], "Bomb Info", 0.16, bombEnabled)
 
 -- Update Bomb Info
 local function updateBombInfo()
